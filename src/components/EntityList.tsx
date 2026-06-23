@@ -46,6 +46,7 @@ export function EntityList<T>({ queryKey, fetchPage, renderItem, keyExtractor, h
       keyExtractor={keyExtractor}
       renderItem={({ item }) => renderItem(item)}
       ListHeaderComponent={header}
+      style={styles.list}
       contentContainerStyle={styles.content}
       onEndReachedThreshold={0.5}
       onEndReached={() => {
@@ -63,6 +64,7 @@ export function EntityList<T>({ queryKey, fetchPage, renderItem, keyExtractor, h
 
 const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 6 },
+  list: { flex: 1 },
   content: { padding: 16, gap: 10 },
   error: { color: theme.danger, fontSize: 16, fontWeight: '600' },
   errorHint: { color: theme.textFaint, fontSize: 13, textAlign: 'center' },

@@ -18,14 +18,14 @@ const GROUP_LABELS: Record<string, string> = {
   skill_trees: 'Skill Trees',
 };
 
-const PATHS: Record<string, string> = {
-  monster: '/monsters',
-  weapon: '/weapons',
-  armor: '/armor',
-  decoration: '/items',
-  item: '/items',
-  quest: '/quests',
-};
+const ROUTES = {
+  monster: '/monsters/[id]',
+  weapon: '/weapons/[id]',
+  armor: '/armor/[id]',
+  decoration: '/items/[id]',
+  item: '/items/[id]',
+  quest: '/quests/[id]',
+} as const;
 
 export default function SearchScreen() {
   const [text, setText] = useState('');
@@ -40,8 +40,8 @@ export default function SearchScreen() {
   const groups = Object.entries(search.data?.data ?? {}).filter(([, hits]) => hits.length > 0);
 
   const open = (hit: SearchHit) => {
-    const base = PATHS[hit.type];
-    if (base) router.push(`${base}/${hit.id}`);
+    const pathname = ROUTES[hit.type as keyof typeof ROUTES];
+    if (pathname) router.push({ pathname, params: { id: hit.id } });
   };
 
   return (
