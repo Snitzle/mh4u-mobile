@@ -20,6 +20,7 @@ export default function QuestDetail() {
             <Text style={{ color: theme.accent }}>{'★'.repeat(quest.stars)}</Text>
             <Pill>{quest.hub}</Pill>
             <Pill>{quest.type}</Pill>
+            {quest.priority ? <Pill>{quest.priority}</Pill> : null}
             {quest.location ? <Pill>{quest.location.name}</Pill> : null}
           </View>
 
@@ -55,6 +56,32 @@ export default function QuestDetail() {
                   <Text style={{ color: theme.text }}>{monster.name}</Text>
                 </Pressable>
               ))}
+            </>
+          )}
+
+          {quest.supplies && quest.supplies.length > 0 && (
+            <>
+              <SectionTitle>Supply items</SectionTitle>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {quest.supplies.map((supply, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      backgroundColor: theme.surface,
+                      borderColor: theme.border,
+                      borderWidth: 1,
+                      borderRadius: 10,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                    }}
+                  >
+                    <Text style={{ color: theme.textDim, fontSize: 13 }}>
+                      {supply.item}
+                      {supply.quantity && supply.quantity > 1 ? ` ×${supply.quantity}` : ''}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </>
           )}
 

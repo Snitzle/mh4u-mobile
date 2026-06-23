@@ -127,14 +127,17 @@ export interface WeaponSummary {
   icon_url: string | null;
 }
 
+export type SharpnessColour = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'white' | 'purple';
+
 export interface Weapon extends WeaponSummary {
   affinity: string;
   defense: number | null;
   num_slots: number;
   final: boolean | null;
+  attack_modifier?: number;
   element?: { type: string; attack: number | null };
-  sharpness?: string;
-  ammo?: string;
+  sharpness?: { normal: Record<SharpnessColour, number>; plus: Record<SharpnessColour, number> } | null;
+  ammo?: { item_id: number; item: string | null; capacity: number | null; special: number | null }[];
   children?: WeaponSummary[];
   melodies?: { song: string; duration: string }[];
 }
@@ -170,8 +173,11 @@ export interface Quest extends QuestSummary {
   reward: number;
   fee: number;
   hrp: number | null;
+  priority?: string | null;
+  map_time?: number | null;
   location?: LocationSummary;
   monsters?: MonsterSummary[];
+  supplies?: { item_id: number; item: string | null; quantity: number | null }[];
   rewards?: Record<string, { percentage: number; item?: ItemSummary }[]>;
 }
 

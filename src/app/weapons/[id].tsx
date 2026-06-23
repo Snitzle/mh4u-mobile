@@ -5,6 +5,33 @@ import { DetailContainer } from '@/components/Detail';
 import { Icon, Pill, SectionTitle, StatTile } from '@/components/ui';
 import { api } from '@/lib/api';
 import { theme } from '@/lib/theme';
+import type { SharpnessColour } from '@/lib/types';
+
+const SHARPNESS_COLOURS: { key: SharpnessColour; hex: string }[] = [
+  { key: 'red', hex: '#d63b3b' },
+  { key: 'orange', hex: '#e0822d' },
+  { key: 'yellow', hex: '#e3cf2d' },
+  { key: 'green', hex: '#46c046' },
+  { key: 'blue', hex: '#3f86df' },
+  { key: 'white', hex: '#e9e9e9' },
+  { key: 'purple', hex: '#c77dff' },
+];
+
+function SharpnessBar({ values }: { values: Record<SharpnessColour, number> }) {
+  const total = SHARPNESS_COLOURS.reduce((sum, colour) => sum + (values[colour.key] || 0), 0);
+  if (total === 0) {
+    return null;
+  }
+  return (
+    <View style={{ flexDirection: 'row', height: 12, borderRadius: 3, overflow: 'hidden' }}>
+      {SHARPNESS_COLOURS.map((colour) =>
+        (values[colour.key] || 0) === 0 ? null : (
+          <View key={colour.key} style={{ flex: values[colour.key], backgroundColor: colour.hex }} />
+        ),
+      )}
+    </View>
+  );
+}
 
 export default function WeaponDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,9 +61,34 @@ export default function WeaponDetail() {
             <StatTile label="Slots" value={'◯'.repeat(weapon.num_slots) || '—'} />
           </View>
           {weapon.sharpness ? (
-            <Text style={{ color: theme.textDim, marginTop: 12 }}>Sharpness: {weapon.sharpness}</Text>
+            <View style={{ marginTop: 12, gap: 8 }}>
+              <View>
+                <Text style={{ color: theme.textFaint, fontSize: 11, marginBottom: 4 }}>SHARPNESS</Text>
+                <SharpnessBar values={weapon.sharpness.normal} />
+              </View>
+              <View>
+                <Text style={{ color: theme.textFaint, fontSize: 11, marginBottom: 4 }}>SHARPNESS +1</Text>
+                <SharpnessBar values={weapon.sharpness.plus} />
+              </View>
+            </View>
           ) : null}
-          {weapon.ammo ? <Text style={{ color: theme.textDim, marginTop: 8 }}>Ammo: {weapon.ammo}</Text> : null}
+          {weapon.ammo && weapon.ammo.length > 0 ? (
+            <>
+              <SectionTitle>Ammo</SectionTitle>
+              {weapon.ammo.map((round, index) => (
+                <View
+                  key={index}
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 }}
+                >
+                  <Text style={{ color: theme.textDim }}>{round.item}</Text>
+                  <Text style={{ color: theme.textFaint, fontVariant: ['tabular-nums'] }}>
+                    {round.capacity}
+                    {round.special ? ` (+${round.special})` : ''}
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : null}
 
           {weapon.melodies && weapon.melodies.length > 0 && (
             <>
