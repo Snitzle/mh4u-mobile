@@ -5,19 +5,28 @@ import { EntityList } from '@/components/EntityList';
 import { FilterChipRow } from '@/components/FilterChipRow';
 import { Card, Icon, RarityBadge } from '@/components/ui';
 import { api } from '@/lib/api';
-import { RARITY_OPTIONS } from '@/lib/filters';
+import { ELEMENT_OPTIONS, RARITY_OPTIONS } from '@/lib/filters';
 import { theme } from '@/lib/theme';
 import type { WeaponSummary } from '@/lib/types';
 
 export default function WeaponsScreen() {
   const [rarity, setRarity] = useState<string | null>(null);
+  const [element, setElement] = useState<string | null>(null);
 
   return (
     <View style={{ flex: 1 }}>
+      <FilterChipRow label="Element" options={ELEMENT_OPTIONS} value={element} onChange={setElement} />
       <FilterChipRow label="Rarity" options={RARITY_OPTIONS} value={rarity} onChange={setRarity} />
       <EntityList<WeaponSummary>
-        queryKey={['weapons', rarity]}
-        fetchPage={(page) => api.weapons({ page, per_page: 50, 'filter[rarity]': rarity ?? undefined })}
+        queryKey={['weapons', rarity, element]}
+        fetchPage={(page) =>
+          api.weapons({
+            page,
+            per_page: 50,
+            'filter[rarity]': rarity ?? undefined,
+            'filter[element]': element ?? undefined,
+          })
+        }
         keyExtractor={(weapon) => String(weapon.id)}
         renderItem={(weapon) => (
           <Card onPress={() => router.push(`/weapons/${weapon.id}`)}>

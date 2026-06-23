@@ -1,8 +1,10 @@
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { EntityList } from '@/components/EntityList';
 import { FilterChipRow } from '@/components/FilterChipRow';
+import { OptionPicker } from '@/components/OptionPicker';
 import { Card, Icon, RarityBadge } from '@/components/ui';
 import { api } from '@/lib/api';
 import { RARITY_OPTIONS } from '@/lib/filters';
@@ -11,13 +13,35 @@ import type { ArmorSummary } from '@/lib/types';
 
 export default function ArmorScreen() {
   const [rarity, setRarity] = useState<string | null>(null);
+  const [skill, setSkill] = useState<string | null>(null);
+
+  const { data: skillTrees } = useQuery({
+    queryKey: ['skill-trees', 'all'],
+    queryFn: () => api.skillTrees({ per_page: 200 }),
+  });
+  const skillOptions = (skillTrees?.data ?? []).map((tree) => ({ value: String(tree.id), label: tree.name }));
 
   return (
     <View style={{ flex: 1 }}>
+      <OptionPicker
+        label="Skill"
+        title="Filter by skill"
+        placeholder="Any skill"
+        value={skill}
+        options={skillOptions}
+        onChange={setSkill}
+      />
       <FilterChipRow label="Rarity" options={RARITY_OPTIONS} value={rarity} onChange={setRarity} />
       <EntityList<ArmorSummary>
-        queryKey={['armor', rarity]}
-        fetchPage={(page) => api.armorList({ page, per_page: 50, 'filter[rarity]': rarity ?? undefined })}
+        queryKey={['armor', rarity, skill]}
+        fetchPage={(page) =>
+          api.armorList({
+            page,
+            per_page: 50,
+            'filter[rarity]': rarity ?? undefined,
+            'filter[skill]': skill ?? undefined,
+          })
+        }
         keyExtractor={(piece) => String(piece.id)}
         renderItem={(piece) => (
           <Card onPress={() => router.push(`/armor/${piece.id}`)}>

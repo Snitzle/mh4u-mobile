@@ -122,6 +122,11 @@ export interface LocationSummary {
   map_url: string | null;
 }
 
+export interface SkillTreeSummary {
+  id: number;
+  name: string;
+}
+
 export interface SearchHit {
   type: string;
   id: number;
