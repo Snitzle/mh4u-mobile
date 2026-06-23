@@ -28,6 +28,39 @@ function RatingRow({ items }: { items: { label: string; value: number }[] }) {
   );
 }
 
+const THRESHOLD_LABELS: Record<string, string> = {
+  low: 'LR',
+  high: 'HR',
+  high_apex: 'HR Apex',
+  g: 'G',
+  g_apex: 'G Apex',
+};
+
+function joinDot(parts: (string | false | null | undefined)[]): string {
+  return parts.filter(Boolean).join(' · ');
+}
+
+function fmtThresholds(values: Record<string, number>): string {
+  return Object.keys(THRESHOLD_LABELS)
+    .filter((key) => values[key] != null)
+    .map((key) => `${THRESHOLD_LABELS[key]} ${values[key]}%`)
+    .join(' · ');
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  if (!value) return null;
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingVertical: 4 }}>
+      <Text style={{ color: theme.textFaint, fontSize: 13 }}>{label}</Text>
+      <Text
+        style={{ color: theme.text, fontSize: 13, flexShrink: 1, textAlign: 'right', fontVariant: ['tabular-nums'] }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 export default function MonsterDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const query = useQuery({ queryKey: ['monster', id], queryFn: () => api.monster(id) });
@@ -47,6 +80,61 @@ export default function MonsterDetail() {
               </View>
             </View>
           </View>
+
+          {monster.ecology ? (
+            <Text style={{ color: theme.textDim, fontSize: 14, lineHeight: 20 }}>{monster.ecology}</Text>
+          ) : null}
+
+          {(monster.hp || monster.crowns || monster.enraged || monster.capture || monster.limping) && (
+            <>
+              <SectionTitle>Vitals</SectionTitle>
+              <View
+                style={{
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  borderWidth: 1,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                }}
+              >
+                {monster.hp && (
+                  <InfoRow
+                    label="HP"
+                    value={joinDot([
+                      monster.hp.base.toLocaleString(),
+                      monster.hp.low_multiplier != null && `LR ×${monster.hp.low_multiplier}`,
+                      monster.hp.high_multiplier != null && `HR ×${monster.hp.high_multiplier}`,
+                      monster.hp.g_multiplier != null && `G ×${monster.hp.g_multiplier}`,
+                    ])}
+                  />
+                )}
+                {monster.enraged && (
+                  <InfoRow
+                    label="Enraged"
+                    value={joinDot([
+                      monster.enraged.attack_modifier != null && `ATK ×${monster.enraged.attack_modifier}`,
+                      monster.enraged.defense_modifier != null && `DEF ×${monster.enraged.defense_modifier}`,
+                      monster.enraged.speed_modifier != null && `SPD ×${monster.enraged.speed_modifier}`,
+                      monster.enraged.duration != null && `~${monster.enraged.duration}s`,
+                    ])}
+                  />
+                )}
+                {monster.crowns && (
+                  <InfoRow
+                    label="Crowns"
+                    value={joinDot([
+                      monster.crowns.mini != null && `Mini ≤ ${monster.crowns.mini}`,
+                      monster.crowns.large != null && `Large ≥ ${monster.crowns.large}`,
+                      monster.crowns.king != null && `King ≥ ${monster.crowns.king}`,
+                    ])}
+                  />
+                )}
+                {monster.capture && <InfoRow label="Capturable" value={fmtThresholds(monster.capture)} />}
+                {monster.limping && <InfoRow label="Limping" value={fmtThresholds(monster.limping)} />}
+              </View>
+            </>
+          )}
 
           {monster.ailments && monster.ailments.length > 0 && (
             <>
@@ -85,6 +173,19 @@ export default function MonsterDetail() {
             </>
           )}
 
+          {monster.stagger_limits && monster.stagger_limits.length > 0 && (
+            <>
+              <SectionTitle>Stagger / break</SectionTitle>
+              <StatTable
+                columns={['Region', 'Limit']}
+                rows={monster.stagger_limits.map((s) => [
+                  s.region,
+                  s.value_cut != null ? `${cell(s.value)} / ${s.value_cut}` : cell(s.value),
+                ])}
+              />
+            </>
+          )}
+
           {monster.statuses && monster.statuses.length > 0 && (
             <>
               <SectionTitle>Status tolerance</SectionTitle>
@@ -95,6 +196,21 @@ export default function MonsterDetail() {
                   cell(s.initial), cell(s.increase), cell(s.max),
                   s.duration ? `${s.duration}s` : '—',
                   s.damage || '—',
+                ])}
+              />
+            </>
+          )}
+
+          {monster.trap_effects && monster.trap_effects.length > 0 && (
+            <>
+              <SectionTitle>Trap &amp; bomb (sec)</SectionTitle>
+              <StatTable
+                columns={['Item', 'Normal', 'Enraged', 'Fatigued']}
+                rows={monster.trap_effects.map((t) => [
+                  t.trap,
+                  cell(t.normal),
+                  cell(t.enraged),
+                  cell(t.fatigued),
                 ])}
               />
             </>
