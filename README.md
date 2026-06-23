@@ -1,56 +1,89 @@
-# Welcome to your Expo app 👋
+# MH4U Database — Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> The mobile client for the **Monster Hunter 4 Ultimate** database. Browse
+> monsters, weapons, armor, items and quests, with search — all served from the
+> [mh4u-api](https://github.com/Snitzle/mh4u-api).
 
-## Get started
+![Expo](https://img.shields.io/badge/Expo-56-000020?logo=expo&logoColor=white)
+![React Native](https://img.shields.io/badge/React%20Native-0.85-61DAFB?logo=react&logoColor=black)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
-1. Install dependencies
+Built with Expo 56 (expo-router, file-based routing), React Native 0.85 and
+TanStack Query.
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- **Node.js 20+** and npm.
+- **The API running** at `http://localhost:8088`. Follow the setup in
+  [mh4u-api](https://github.com/Snitzle/mh4u-api) first — the quickest path is
+  `docker compose up --build` in that repo.
+- For the **iOS simulator**: Xcode (with an installed simulator runtime).
+- For **Android**: Android Studio with an emulator, or the Expo Go app.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting started
 
 ```bash
-npm run reset-project
+# 1. Make sure the API is up (see mh4u-api), then:
+npm install
+
+# 2. (Optional) copy the env template. The default targets http://localhost:8088,
+#    which the iOS simulator can reach directly — only needed for a real device.
+cp .env.example .env.local
+
+# 3. Start the app
+npx expo start --ios     # or: npm run ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+In the Expo CLI output you can also open the app in an Android emulator
+(`npm run android`), the web build (`npm run web`), or [Expo Go](https://expo.dev/go)
+by scanning the QR code.
 
-### Other setup steps
+## Connecting to the API
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+The base URL is read from `EXPO_PUBLIC_API_BASE` (default
+`http://localhost:8088/api/v1`):
 
-## Learn more
+| Target | Value |
+| --- | --- |
+| iOS simulator | `http://localhost:8088/api/v1` (the default — shares the host's localhost) |
+| Android emulator | `http://10.0.2.2:8088/api/v1` (the emulator's alias for the host) |
+| Physical device (Expo Go) | `http://<your-machine-LAN-IP>:8088/api/v1`, e.g. `http://192.168.1.50:8088/api/v1` |
 
-To learn more about developing your project with Expo, look at the following resources:
+Set it per-machine in `.env.local` (gitignored):
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```dotenv
+EXPO_PUBLIC_API_BASE=http://192.168.1.50:8088/api/v1
+```
 
-## Join the community
+## Scripts
 
-Join our community of developers creating universal apps.
+```bash
+npm run ios       # start + open iOS simulator
+npm run android   # start + open Android emulator
+npm run web       # start the web build
+npm run lint      # expo lint
+npm start         # start the Metro bundler (choose a target interactively)
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Project structure
+
+```
+src/
+  app/            # expo-router screens: (tabs)/ + monsters|weapons|armor|items|quests/[id]
+  components/     # Shared UI (EntityList, Detail, StatTable, FilterChipRow, pickers, …)
+  lib/
+    api.ts        # API client
+    types.ts      # Shared types
+    filters.ts    # List filter definitions
+    theme.ts      # Colors / styling tokens
+```
+
+## Attribution & license
+
+The application source code is released under the [MIT License](LICENSE).
+
+*Monster Hunter 4 Ultimate*, all related names, assets and imagery are
+trademarks of **© CAPCOM CO., LTD.** This is an unofficial, non-commercial fan
+project and is not affiliated with or endorsed by Capcom. Game data lineage and
+attribution are documented in the [mh4u-api](https://github.com/Snitzle/mh4u-api)
+repository.
