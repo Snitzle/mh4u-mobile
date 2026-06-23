@@ -21,6 +21,29 @@ export interface MonsterWeakness {
   state: string;
   elements: Record<'fire' | 'water' | 'thunder' | 'ice' | 'dragon', number>;
   ailments: Record<'poison' | 'paralysis' | 'sleep', number>;
+  traps: Record<string, number>;
+}
+
+export interface MonsterDamage {
+  body_part: string;
+  cut: number | null;
+  impact: number | null;
+  shot: number | null;
+  fire: number | null;
+  water: number | null;
+  ice: number | null;
+  thunder: number | null;
+  dragon: number | null;
+  ko: number | null;
+}
+
+export interface MonsterStatus {
+  status: string;
+  initial: number | null;
+  increase: number | null;
+  max: number | null;
+  duration: number | null;
+  damage: number | null;
 }
 
 export interface HuntingReward {
@@ -34,7 +57,10 @@ export interface HuntingReward {
 export interface Monster extends MonsterSummary {
   signature_move: string;
   trait: string;
+  damage?: MonsterDamage[];
   weaknesses?: MonsterWeakness[];
+  statuses?: MonsterStatus[];
+  ailments?: string[];
   habitats?: { location?: LocationSummary }[];
   hunting_rewards?: Record<string, HuntingReward[]>;
   quests?: QuestSummary[];

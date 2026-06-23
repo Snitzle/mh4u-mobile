@@ -2,11 +2,31 @@ import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { DetailContainer, Dots } from '@/components/Detail';
+import { StatTable } from '@/components/StatTable';
 import { Icon, Pill, SectionTitle } from '@/components/ui';
 import { api } from '@/lib/api';
 import { theme } from '@/lib/theme';
 
 const ELEMENTS = ['fire', 'water', 'thunder', 'ice', 'dragon'] as const;
+const AILMENTS = ['poison', 'paralysis', 'sleep'] as const;
+const TRAPS = ['pitfall_trap', 'shock_trap', 'flash_bomb', 'sonic_bomb', 'dung_bomb', 'meat'] as const;
+
+const cell = (value: number | null): string => (value === null || value < 0 ? '—' : String(value));
+
+function RatingRow({ items }: { items: { label: string; value: number }[] }) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 14, rowGap: 6 }}>
+      {items.map(({ label, value }) => (
+        <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <Text style={{ color: theme.textFaint, fontSize: 12, textTransform: 'capitalize' }}>
+            {label.replace('_', ' ')}
+          </Text>
+          <Dots value={value} />
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export default function MonsterDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,36 +48,55 @@ export default function MonsterDetail() {
             </View>
           </View>
 
-          {monster.weaknesses && monster.weaknesses.length > 0 && (
+          {monster.ailments && monster.ailments.length > 0 && (
             <>
-              <SectionTitle>Weaknesses</SectionTitle>
-              {monster.weaknesses.map((weakness) => (
-                <View
-                  key={weakness.state}
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderColor: theme.border,
-                    borderWidth: 1,
-                    borderRadius: 12,
-                    padding: 12,
-                    marginBottom: 8,
-                  }}
-                >
-                  <Text style={{ color: theme.textDim, fontWeight: '600', marginBottom: 8 }}>
-                    {weakness.state}
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}>
-                    {ELEMENTS.map((element) => (
-                      <View key={element} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={{ color: theme.textFaint, fontSize: 12, textTransform: 'capitalize', width: 52 }}>
-                          {element}
-                        </Text>
-                        <Dots value={weakness.elements[element]} />
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
+              <SectionTitle>Inflicts</SectionTitle>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {monster.ailments.map((ailment) => (
+                  <Pill key={ailment}>{ailment}</Pill>
+                ))}
+              </View>
+            </>
+          )}
+
+          {monster.weaknesses?.map((weakness) => (
+            <View key={weakness.state}>
+              <SectionTitle>Effectiveness · {weakness.state}</SectionTitle>
+              <View style={{ gap: 10 }}>
+                <RatingRow items={ELEMENTS.map((e) => ({ label: e, value: weakness.elements[e] }))} />
+                <RatingRow items={AILMENTS.map((a) => ({ label: a, value: weakness.ailments[a] }))} />
+                <RatingRow items={TRAPS.map((t) => ({ label: t, value: weakness.traps?.[t] ?? 0 }))} />
+              </View>
+            </View>
+          ))}
+
+          {monster.damage && monster.damage.length > 0 && (
+            <>
+              <SectionTitle>Hitzones</SectionTitle>
+              <StatTable
+                columns={['Part', 'Cut', 'Impact', 'Shot', 'Fire', 'Water', 'Ice', 'Thunder', 'Dragon', 'KO']}
+                rows={monster.damage.map((z) => [
+                  z.body_part,
+                  cell(z.cut), cell(z.impact), cell(z.shot),
+                  cell(z.fire), cell(z.water), cell(z.ice), cell(z.thunder), cell(z.dragon),
+                  cell(z.ko),
+                ])}
+              />
+            </>
+          )}
+
+          {monster.statuses && monster.statuses.length > 0 && (
+            <>
+              <SectionTitle>Status tolerance</SectionTitle>
+              <StatTable
+                columns={['Status', 'Init', 'Build', 'Max', 'Dur', 'Dmg']}
+                rows={monster.statuses.map((s) => [
+                  s.status,
+                  cell(s.initial), cell(s.increase), cell(s.max),
+                  s.duration ? `${s.duration}s` : '—',
+                  s.damage || '—',
+                ])}
+              />
             </>
           )}
 
@@ -93,7 +132,7 @@ export default function MonsterDetail() {
           {monster.quests && monster.quests.length > 0 && (
             <>
               <SectionTitle>Appears in quests</SectionTitle>
-              {monster.quests.map((quest) => (
+              {Array.from(new Map(monster.quests.map((q) => [q.id, q])).values()).map((quest) => (
                 <Pressable
                   key={quest.id}
                   onPress={() => router.push(`/quests/${quest.id}`)}
